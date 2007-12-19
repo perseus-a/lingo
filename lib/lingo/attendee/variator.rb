@@ -70,7 +70,7 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-    class Variator < Lingo::Attendee
+    class Variator < Attendee
 
       protected
 

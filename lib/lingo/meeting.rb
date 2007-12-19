@@ -88,7 +88,7 @@ class Lingo
         config.update( data ) unless data.nil?
 
         #  Teilnehmer-Objekt erzeugen
-        attendee = Lingo::Attendee.const_get(config['name']).new(config)
+        attendee = Attendee.const_get(config['name']).new(config)
         exit if attendee.nil?
         @attendees << attendee
 

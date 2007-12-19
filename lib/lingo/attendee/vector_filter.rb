@@ -77,7 +77,7 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-    class Vector_filter < Lingo::Attendee
+    class Vector_filter < Attendee
 
       protected
 

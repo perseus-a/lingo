@@ -94,7 +94,7 @@ ergibt die Ausgabe mit <tt>lingo -c t2 lir.txt</tt>
   out> *EOF('lir.txt')
 =end
 
-    class Textreader < Lingo::Attendee
+    class Textreader < Attendee
 
       protected
 

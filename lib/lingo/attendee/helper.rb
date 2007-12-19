@@ -31,7 +31,7 @@ Der Helper hilft bei automatischen Testreihen vor Releasefreigabe von Lingo.
 Für den praktischen Einsatz ist er nicht vorgesehen.
 =end
 
-    class Helper < Lingo::Attendee
+    class Helper < Attendee
 
       protected
 

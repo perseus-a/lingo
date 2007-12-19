@@ -106,7 +106,7 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-    class Sequencer < Lingo::BufferedAttendee
+    class Sequencer < BufferedAttendee
 
       protected
 
@@ -114,7 +114,7 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
         #  Parameter verwerten
         @stopper = get_array('stopper', TA_PUNCTUATION+','+TA_OTHER).collect {|s| s.upcase }
         @seq_strings = get_key('sequences')
-        @seq_strings.collect! { |e| Lingo::WordSequence.new(e[0], e[1]) }
+        @seq_strings.collect! { |e| WordSequence.new(e[0], e[1]) }
         forward(STR_CMD_ERR, 'Konfiguration ist leer') if @seq_strings.size==0
       end
 

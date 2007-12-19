@@ -75,7 +75,7 @@ ergibt die Ausgabe in der Datei <tt>test.vec</tt>
   0.01923 umleitung
 =end
 
-    class Textwriter < Lingo::Attendee
+    class Textwriter < Attendee
 
       protected
 

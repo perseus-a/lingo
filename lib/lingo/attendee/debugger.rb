@@ -85,7 +85,7 @@ ergibt die Ausgabe
     TOKEN:)  *EOF('test.txt')
 =end
 
-    class Debugger < Lingo::Attendee
+    class Debugger < Attendee
 
       protected
 

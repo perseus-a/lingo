@@ -25,13 +25,13 @@ require 'yaml'
 
 class Lingo
 
-#  Lingo::Config will hold the complete comfiguration information, which will
+#  Config will hold the complete comfiguration information, which will
 #  control lingos processing flow.
 #  The complete configuration will hold three sets of information
 #
 #  1. Language specific configuration information (refer to @keys['language'])
 #     ------------------------------------------------------------------------
-#     Lingo::Config will load the configuration file, i.e. de.lang
+#     Config will load the configuration file, i.e. de.lang
 #     You can tell lingo to use a specific language definition file
 #     by using the -l command line option follow by the language shortcut.
 #     For example if you call 'ruby lingo.rb -l en <file_to_process>' lingo
@@ -47,7 +47,7 @@ class Lingo
 #
 #  2. Processing specific configuration information (refer to @keys['meeting'])
 #     -------------------------------------------------------------------------
-#     Lingo::Config will load the configuration file lingo.cfg by default.
+#     Config will load the configuration file lingo.cfg by default.
 #     You can tell lingo to use an other configuration file
 #     by using the -c command line option follow by the configuration name.
 #     For example if you call 'ruby lingo.rb -c test <file_to_process>' lingo
