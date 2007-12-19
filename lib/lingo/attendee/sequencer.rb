@@ -21,18 +21,24 @@
 #
 #  Lex Lingo rules from here on
 
-class Lingo::WordSequence
+class Lingo
 
-  attr_reader :classes, :format
+  class WordSequence
 
-  private
+    attr_reader :classes, :format
 
-  def initialize(wordclasses, format)
-    @classes = wordclasses.upcase
-    @format = format
+    def initialize(wordclasses, format)
+      @classes = wordclasses.upcase
+      @format = format
+    end
+
   end
 
 end
+
+class Lingo
+
+  class Attendee
 
 =begin rdoc
 == Sequencer
@@ -100,61 +106,65 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-class Lingo::Sequencer < Lingo::BufferedAttendee
+    class Sequencer < Lingo::BufferedAttendee
 
-  protected
+      protected
 
-  def init
-    #  Parameter verwerten
-    @stopper = get_array('stopper', TA_PUNCTUATION+','+TA_OTHER).collect {|s| s.upcase }
-    @seq_strings = get_key('sequences')
-    @seq_strings.collect! { |e| Lingo::WordSequence.new(e[0], e[1]) }
-    forward(STR_CMD_ERR, 'Konfiguration ist leer') if @seq_strings.size==0
-  end
-
-  def control(cmd, par)
-    #  Jedes Control-Object ist auch Auslöser der Verarbeitung
-    process_buffer
-  end
-
-  def process_buffer?
-    @buffer[-1].kind_of?(Lingo::StringA) && @stopper.include?(@buffer[-1].attr.upcase)
-  end
-
-  def process_buffer
-    return if @buffer.size==0
-
-    #  Sequence aus der Wortliste auslesen
-    @sequence = @buffer.collect { |obj|
-      res = '#'
-      if obj.kind_of?(Lingo::Word)
-        lex = obj.lexicals[0]
-        if obj.attr!=WA_UNKNOWN && obj.attr!=WA_UNKMULPART # && lex.attr!=LA_VERB
-          res = lex.attr
-        end
+      def init
+        #  Parameter verwerten
+        @stopper = get_array('stopper', TA_PUNCTUATION+','+TA_OTHER).collect {|s| s.upcase }
+        @seq_strings = get_key('sequences')
+        @seq_strings.collect! { |e| Lingo::WordSequence.new(e[0], e[1]) }
+        forward(STR_CMD_ERR, 'Konfiguration ist leer') if @seq_strings.size==0
       end
-      res
-    }.join.upcase
 
-    #    Muster erkennen
-    @seq_strings.each { |wordseq|
-      pos = 0
-      until (pos = @sequence.index(wordseq.classes, pos)).nil?
-        #  got a match
-        inc('Anzahl erkannter Sequenzen')
-        form = wordseq.format
-        lexis = []
-        (0...wordseq.classes.size).each { |j|
-          lex = @buffer[pos+j].lexicals[0]
-          form = form.gsub((j+1).to_s, lex.form)
-          lexis << lex
+      def control(cmd, par)
+        #  Jedes Control-Object ist auch Auslöser der Verarbeitung
+        process_buffer
+      end
+
+      def process_buffer?
+        @buffer[-1].kind_of?(StringA) && @stopper.include?(@buffer[-1].attr.upcase)
+      end
+
+      def process_buffer
+        return if @buffer.size==0
+
+        #  Sequence aus der Wortliste auslesen
+        @sequence = @buffer.collect { |obj|
+          res = '#'
+          if obj.kind_of?(Word)
+            lex = obj.lexicals[0]
+            if obj.attr!=WA_UNKNOWN && obj.attr!=WA_UNKMULPART # && lex.attr!=LA_VERB
+              res = lex.attr
+            end
+          end
+          res
+        }.join.upcase
+
+        #    Muster erkennen
+        @seq_strings.each { |wordseq|
+          pos = 0
+          until (pos = @sequence.index(wordseq.classes, pos)).nil?
+            #  got a match
+            inc('Anzahl erkannter Sequenzen')
+            form = wordseq.format
+            lexis = []
+            (0...wordseq.classes.size).each { |j|
+              lex = @buffer[pos+j].lexicals[0]
+              form = form.gsub((j+1).to_s, lex.form)
+              lexis << lex
+            }
+            word = Word.new(form, WA_SEQUENCE) << Lexical.new(form, LA_SEQUENCE)
+            deferred_insert(pos, word)
+            pos += 1
+          end
         }
-        word = Lingo::Word.new(form, WA_SEQUENCE) << Lingo::Lexical.new(form, LA_SEQUENCE)
-        deferred_insert(pos, word)
-        pos += 1
+        forward_buffer
       end
-    }
-    forward_buffer
+
+    end
+
   end
 
 end

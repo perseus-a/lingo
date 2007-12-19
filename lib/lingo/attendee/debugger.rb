@@ -21,6 +21,10 @@
 #
 #  Lex Lingo rules from here on
 
+class Lingo
+
+  class Attendee
+
 =begin rdoc
 == Debugger
 Die Attendees von Lingo übergeben Daten über ihre Kommunikationskanäle und entweder kommt bei
@@ -45,60 +49,64 @@ Alle anderen Parameter müssen zwingend angegeben werden.
 <b>in</b>:: siehe allgemeine Beschreibung des Attendee
 <b>out</b>:: siehe allgemeine Beschreibung des Attendee
 <b><i>eval</i></b>:: (Standard: true) Gibt eine Bedingung an, die erfüllt sein muss, damit ein
-                     Datenobjekt ausgegeben wird (siehe Beschreibung Objectfilter)
+                       Datenobjekt ausgegeben wird (siehe Beschreibung Objectfilter)
 <b><i>ceval</i></b>:: (Standard: true) Gibt eiune Bedingung an, die erfüllt sein muss, damit ein
-                     Kommandoobjekt ausgegeben wird.
+                       Kommandoobjekt ausgegeben wird.
 <b><i>prompt</i></b>:: (Standard: 'lex:) ') Gibt an, mit welchem Prefix die Ausgabe versehen werden
-                       soll. Insbesondere wenn mit mehreren Debuggern gearbeitet wird, sollte dies
-                       genutzt werden.
+                         soll. Insbesondere wenn mit mehreren Debuggern gearbeitet wird, sollte dies
+                         genutzt werden.
 
 === Beispiele
 Bei der Verarbeitung der oben angegebenen Funktionsbeschreibung des Textwriters mit der Ablaufkonfiguration <tt>t1.cfg</tt>
-  meeting:
-    attendees:
-      - textreader: { out: lines, files: '$(files)' }
-      - debugger:   { in: lines, prompt: 'LINES:) ' }
-      - tokenizer:  { in: lines, out: token }
-      - debugger:   { in: token, prompt: 'TOKEN:) ' }
+    meeting:
+      attendees:
+        - textreader: { out: lines, files: '$(files)' }
+        - debugger:   { in: lines, prompt: 'LINES:) ' }
+        - tokenizer:  { in: lines, out: token }
+        - debugger:   { in: token, prompt: 'TOKEN:) ' }
 ergibt die Ausgabe
-  LINES:)  *FILE('test.txt')
-  TOKEN:)  *FILE('test.txt')
-  LINES:)  "Der Debugger kann was."
-  TOKEN:)  :Der/WORD:
-  TOKEN:)  :Debugger/WORD:
-  TOKEN:)  :kann/WORD:
-  TOKEN:)  :was/WORD:
-  TOKEN:)  :./PUNC:
-  TOKEN:)  *EOL('test.txt')
-  LINES:)  "Lingo auch :o)"
-  TOKEN:)  :Lingo/WORD:
-  TOKEN:)  :auch/WORD:
-  TOKEN:)  ::/PUNC:
-  TOKEN:)  :o/WORD:
-  TOKEN:)  :)/OTHR:
-  TOKEN:)  *EOL('test.txt')
-  LINES:)  *EOF('test.txt')
-  TOKEN:)  *EOF('test.txt')
+    LINES:)  *FILE('test.txt')
+    TOKEN:)  *FILE('test.txt')
+    LINES:)  "Der Debugger kann was."
+    TOKEN:)  :Der/WORD:
+    TOKEN:)  :Debugger/WORD:
+    TOKEN:)  :kann/WORD:
+    TOKEN:)  :was/WORD:
+    TOKEN:)  :./PUNC:
+    TOKEN:)  *EOL('test.txt')
+    LINES:)  "Lingo auch :o)"
+    TOKEN:)  :Lingo/WORD:
+    TOKEN:)  :auch/WORD:
+    TOKEN:)  ::/PUNC:
+    TOKEN:)  :o/WORD:
+    TOKEN:)  :)/OTHR:
+    TOKEN:)  *EOL('test.txt')
+    LINES:)  *EOF('test.txt')
+    TOKEN:)  *EOF('test.txt')
 =end
 
-class Lingo::Debugger < Lingo::Attendee
+    class Debugger < Lingo::Attendee
 
-  protected
+      protected
 
-  def init
-    @obj_eval = get_key('eval', 'true')
-    @cmd_eval = get_key('ceval', 'true')
-    @prompt = get_key('prompt', 'lex:) ')
-  end
+      def init
+        @obj_eval = get_key('eval', 'true')
+        @cmd_eval = get_key('ceval', 'true')
+        @prompt = get_key('prompt', 'lex:) ')
+      end
 
-  def control(cmd, par)
-    if cmd!=STR_CMD_STATUS
-      puts "#{@prompt} #{Lingo::AgendaItem.new(cmd, par).inspect}" if eval(@cmd_eval)
+      def control(cmd, par)
+        if cmd!=STR_CMD_STATUS
+          puts "#{@prompt} #{AgendaItem.new(cmd, par).inspect}" if eval(@cmd_eval)
+        end
+      end
+
+      def process(obj)
+        puts "#{@prompt} #{obj.inspect}" if eval(@obj_eval)
+      end
+
     end
-  end
 
-  def process(obj)
-    puts "#{@prompt} #{obj.inspect}" if eval(@obj_eval)
   end
 
 end

@@ -21,6 +21,10 @@
 #
 #  Lex Lingo rules from here on
 
+class Lingo
+
+  class Attendee
+
 =begin rdoc
 == Decomposer
 Komposita, also zusammengesetzte Wörter, sind eine Spezialität der deutschen Sprache
@@ -67,28 +71,32 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-class Lingo::Decomposer < Lingo::Attendee
+    class Decomposer < Lingo::Attendee
 
-  protected
+      protected
 
-  def init
-    #  Wörterbuch bereitstellen
-    src = get_array('source')
-    mod = get_key('mode', 'all')
-    @grammar = Lingo::Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
-  end
+      def init
+        #  Wörterbuch bereitstellen
+        src = get_array('source')
+        mod = get_key('mode', 'all')
+        @grammar = Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
+      end
 
-  def control(cmd, par)
-    @grammar.report.each_pair { |key, value|
-      set(key, value)
-    } if cmd == STR_CMD_STATUS
-  end
+      def control(cmd, par)
+        @grammar.report.each_pair { |key, value|
+          set(key, value)
+        } if cmd == STR_CMD_STATUS
+      end
 
-  def process(obj)
-    if obj.is_a?(Lingo::Word) && obj.attr == WA_UNKNOWN
-      obj = @grammar.find_compositum(obj.form)
+      def process(obj)
+        if obj.is_a?(Word) && obj.attr == WA_UNKNOWN
+          obj = @grammar.find_compositum(obj.form)
+        end
+        forward(obj)
+      end
+
     end
-    forward(obj)
+
   end
 
 end

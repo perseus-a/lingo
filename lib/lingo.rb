@@ -21,9 +21,6 @@
 #
 #  Lex Lingo rules from here on
 
-class Lingo
-end
-
 require 'lingo/config'
 require 'lingo/meeting'
 
@@ -31,31 +28,36 @@ class Lingo
 
   @@config = nil
 
-  def initialize(prog=$0, cmdline=$*)
-    $stdin.sync = true
-    $stdout.sync = true
+  class << self
 
-    #  Konfiguration bereitstellen
-    @@config = LingoConfig.new(prog, cmdline)
+    def config
+      new('lingo.rb', []) if @@config.nil?
+      @@config
+    end
 
-    #  Meeting einberufen
+    def meeting
+      @@meeting
+    end
+
+    def error(txt)
+      puts
+      puts txt
+      puts
+
+      exit
+    end
+
+  end
+
+  def initialize(prog = $0, cmdline = $*)
+    STDIN.sync  = true
+    STDOUT.sync = true
+
+    # Konfiguration bereitstellen
+    @@config = Config.new(prog, cmdline)
+
+    # Meeting einberufen
     @@meeting = Meeting.new
-  end
-
-  def Lingo.config
-    Lingo.new( 'lingo.rb', [] ) if @@config.nil?
-    @@config
-  end
-
-  def Lingo.meeting
-    @@meeting
-  end
-
-  def Lingo.error(txt)
-    puts
-    puts txt
-    puts
-    exit
   end
 
   def talk
@@ -63,8 +65,8 @@ class Lingo
     @@meeting.invite(attendees)
 
     protocol = 0
-    protocol += 1 if (@@config['cmdline/status'] || false)
-    protocol += 2 if (@@config['cmdline/perfmon'] || false)
+    protocol += 1 if @@config['cmdline/status']
+    protocol += 2 if @@config['cmdline/perfmon']
 
     @@meeting.start(protocol)
   end

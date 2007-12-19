@@ -21,6 +21,10 @@
 #
 #  Lex Lingo rules from here on
 
+class Lingo
+
+  class Attendee
+
 =begin rdoc
 == Objectfilter
 Der Objectfilter ermöglicht es, beliebige Objekte aus dem Datenstrom herauszufiltern.
@@ -64,16 +68,20 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
-class Lingo::Objectfilter < Lingo::Attendee
+    class Objectfilter < Lingo::Attendee
 
-  protected
+      protected
 
-  def init
-    @obj_eval = get_key('objects', 'true')
-  end
+      def init
+        @obj_eval = get_key('objects', 'true')
+      end
 
-  def process(obj)
-    forward(obj) if eval(@obj_eval)
+      def process(obj)
+        forward(obj) if eval(@obj_eval)
+      end
+
+    end
+
   end
 
 end

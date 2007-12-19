@@ -23,13 +23,15 @@
 
 require 'yaml'
 
-#  LingoConfig will hold the complete comfiguration information, which will
+class Lingo
+
+#  Lingo::Config will hold the complete comfiguration information, which will
 #  control lingos processing flow.
 #  The complete configuration will hold three sets of information
 #
 #  1. Language specific configuration information (refer to @keys['language'])
 #     ------------------------------------------------------------------------
-#     LingoConfig will load the configuration file, i.e. de.lang
+#     Lingo::Config will load the configuration file, i.e. de.lang
 #     You can tell lingo to use a specific language definition file
 #     by using the -l command line option follow by the language shortcut.
 #     For example if you call 'ruby lingo.rb -l en <file_to_process>' lingo
@@ -45,7 +47,7 @@ require 'yaml'
 #
 #  2. Processing specific configuration information (refer to @keys['meeting'])
 #     -------------------------------------------------------------------------
-#     LingoConfig will load the configuration file lingo.cfg by default.
+#     Lingo::Config will load the configuration file lingo.cfg by default.
 #     You can tell lingo to use an other configuration file
 #     by using the -c command line option follow by the configuration name.
 #     For example if you call 'ruby lingo.rb -c test <file_to_process>' lingo
@@ -80,132 +82,134 @@ require 'yaml'
 #         min-word-size: "$(minwordsize)"
 #     and your done.
 
-class Lingo::LingoConfig
+  class Config
 
-  def initialize(prog=$0, cmdline=$*)
-    @keys = {}
+    def initialize(prog=$0, cmdline=$*)
+      @keys = {}
 
-    @options = load_yaml_file(prog, '.opt')
-    @keys['cmdline'] = parse_cmdline(cmdline, @options)
-    usage('') if @keys['cmdline']['usage']
+      @options = load_yaml_file(prog, '.opt')
+      @keys['cmdline'] = parse_cmdline(cmdline, @options)
+      usage('') if @keys['cmdline']['usage']
 
-    config_dir = File.join(File.dirname(__FILE__), '..', '..', 'config')
-    @keys.update(load_yaml_file(File.join(config_dir, @keys['cmdline']['language']), '.lang'))
-    @keys.update(load_yaml_file(File.join(config_dir, @keys['cmdline']['config']), '.cfg'))
+      config_dir = File.join(File.dirname(__FILE__), '..', '..', 'config')
+      @keys.update(load_yaml_file(File.join(config_dir, @keys['cmdline']['language']), '.lang'))
+      @keys.update(load_yaml_file(File.join(config_dir, @keys['cmdline']['config']), '.cfg'))
 
-    patch_keys(@keys['language'])
-    patch_keys(@keys['meeting'])
-  end
-
-  #  muss ein ergebnis != nil zurückgeben, sonst fehler
-  def [](key)
-    if @keys.nil?
-      raise "Keine Konfiguration geladen!"
-    else
-      value = @keys
+      patch_keys(@keys['language'])
+      patch_keys(@keys['meeting'])
     end
-    parent_node = '/'
 
-    #  Pfad entlang gehen
-    key.downcase.split('/').each do |node|
-      value = value[node]
-      parent_node = node
-    end
-    value
-  end
-
-  private
-
-  def parse_cmdline(cmdline, hash)
-    keys = Hash.new
-    non_hyphen_opt = nil
-
-    #  Alle Hyphen-Parameter auslesen
-    hash['command-line-options'].each_pair { |option, attr|
-
-      if attr['opt'].nil?
-        non_hyphen_opt = option
-        next
-      end
-
-      #  Option in der Kommandozeile suchen
-      idx = cmdline.index(attr['opt'])
-      if idx.nil?
-        #  Nicht angegeben, Defaultwert verwenden
-        keys[option] = attr['default'] || false
+    #  muss ein ergebnis != nil zurückgeben, sonst fehler
+    def [](key)
+      if @keys.nil?
+        raise "Keine Konfiguration geladen!"
       else
-        #  Option angegeben, Wert ermitteln
-        if attr.has_key?('value')
-          usage("Option #{opt} verlangt die Angabe eines Wertes!") if (cmdline.size<=idx || cmdline[idx+1][0]==45) # '-'
+        value = @keys
+      end
+      parent_node = '/'
 
-          keys[option] = cmdline[idx+1]
-          cmdline.delete_at(idx+1)
+      #  Pfad entlang gehen
+      key.downcase.split('/').each do |node|
+        value = value[node]
+        parent_node = node
+      end
+      value
+    end
+
+    private
+
+    def parse_cmdline(cmdline, hash)
+      keys = Hash.new
+      non_hyphen_opt = nil
+
+      #  Alle Hyphen-Parameter auslesen
+      hash['command-line-options'].each_pair { |option, attr|
+
+        if attr['opt'].nil?
+          non_hyphen_opt = option
+          next
+        end
+
+        #  Option in der Kommandozeile suchen
+        idx = cmdline.index(attr['opt'])
+        if idx.nil?
+          #  Nicht angegeben, Defaultwert verwenden
+          keys[option] = attr['default'] || false
         else
-          keys[option] = true
+          #  Option angegeben, Wert ermitteln
+          if attr.has_key?('value')
+            usage("Option #{opt} verlangt die Angabe eines Wertes!") if (cmdline.size<=idx || cmdline[idx+1][0]==45) # '-'
+
+            keys[option] = cmdline[idx+1]
+            cmdline.delete_at(idx+1)
+          else
+            keys[option] = true
+          end
+          cmdline.delete_at(idx)
         end
-        cmdline.delete_at(idx)
-      end
 
-    } unless hash.nil?
+      } unless hash.nil?
 
-    opts = cmdline.collect { |p| p if p[0]==45 }.compact.join('|')
-    usage("Unbekannte Optionen (#{opts})!") unless opts==''
+      opts = cmdline.collect { |p| p if p[0]==45 }.compact.join('|')
+      usage("Unbekannte Optionen (#{opts})!") unless opts==''
 
-    keys[non_hyphen_opt] = cmdline.join('|')
+      keys[non_hyphen_opt] = cmdline.join('|')
 
-    keys
-  end
-
-  def load_yaml_file(file_name, file_ext)
-    if File.basename(file_name) =~ /\./
-      yaml_file = file_name.sub(/\.([^\.]+)$/, file_ext)
-    else
-      yaml_file = file_name + file_ext
+      keys
     end
-    usage("Datei #{yaml_file} nicht vorhanden") unless File.exist?(yaml_file)
 
-    YAML.load_file(yaml_file)
-  end
-
-  def patch_keys(cont)
-    case
-    when cont.is_a?(Hash)
-      cont.each_pair do |k,v|
-        case
-          when v.is_a?(String)
-            cont[k].gsub!(   %r|\$\((.+?)\)|   ) { @keys['cmdline'][$1] }
-          when v.is_a?(Hash) || v.is_a?(Array)
-            patch_keys(v)
-        end
+    def load_yaml_file(file_name, file_ext)
+      if File.basename(file_name) =~ /\./
+        yaml_file = file_name.sub(/\.([^\.]+)$/, file_ext)
+      else
+        yaml_file = file_name + file_ext
       end
-    when cont.is_a?(Array)
-      cont.each do |v|
-        case
-          when v.is_a?(String)
-            cont[cont.index(v)].gsub!(   %r|\$\((.+?)\)|   ) { @keys['cmdline'][$1] }
-          when v.is_a?(Hash) || v.is_a?(Array)
-            patch_keys(v)
+      usage("Datei #{yaml_file} nicht vorhanden") unless File.exist?(yaml_file)
+
+      YAML.load_file(yaml_file)
+    end
+
+    def patch_keys(cont)
+      case
+      when cont.is_a?(Hash)
+        cont.each_pair do |k,v|
+          case
+            when v.is_a?(String)
+              cont[k].gsub!(   %r|\$\((.+?)\)|   ) { @keys['cmdline'][$1] }
+            when v.is_a?(Hash) || v.is_a?(Array)
+              patch_keys(v)
+          end
+        end
+      when cont.is_a?(Array)
+        cont.each do |v|
+          case
+            when v.is_a?(String)
+              cont[cont.index(v)].gsub!(   %r|\$\((.+?)\)|   ) { @keys['cmdline'][$1] }
+            when v.is_a?(Hash) || v.is_a?(Array)
+              patch_keys(v)
+          end
         end
       end
     end
-  end
 
-  def usage(text)
-    width = 79
-    puts '-'*width
-    puts text
-    puts '-'*width
+    def usage(text)
+      width = 79
+      puts '-'*width
+      puts text
+      puts '-'*width
 
-    exit( 1 ) if @options.nil?
+      exit( 1 ) if @options.nil?
 
-    puts "USAGE: #{$0}"
-    puts '='*width
+      puts "USAGE: #{$0}"
+      puts '='*width
 
-    @options['command-line-options'].each_pair { |opt, att|
-      printf "%-8s %2s %3s %s", opt[0..7], att['opt'], att.has_key?( 'value' ) ? 'val' : '', att['comment']
-    }
-    puts '='*width
-    exit( 1 )
+      @options['command-line-options'].each_pair { |opt, att|
+        printf "%-8s %2s %3s %s", opt[0..7], att['opt'], att.has_key?( 'value' ) ? 'val' : '', att['comment']
+      }
+      puts '='*width
+      exit( 1 )
+    end
+
   end
 
 end
