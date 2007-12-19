@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,14 +21,13 @@
 #
 #  Lex Lingo rules from here on
 
-
 =begin rdoc
 == Vector_filter
 Die Hauptaufgabe des Vector_filter ist die Erstellung eines Dokumenten-Index-Vektor.
-Dabei werden die durch die anderen Attendees ermittelten Grundformen eines Wortes 
-gespeichert und bei einem Datei- oder Record-Wechsel weitergeleitet. Der Vector_filter 
+Dabei werden die durch die anderen Attendees ermittelten Grundformen eines Wortes
+gespeichert und bei einem Datei- oder Record-Wechsel weitergeleitet. Der Vector_filter
 kann bestimmte Wortklassen filtern und die Ergebnisse in verschiedenen Arten aufbereiten.
-Dabei werden Funktionen wie das einfache Zählen der Häufigkeit innerhalb eines Dokuments, 
+Dabei werden Funktionen wie das einfache Zählen der Häufigkeit innerhalb eines Dokuments,
 aber auch die Term-Frequenz und unterschiedliche Ausgabeformate unterstützt.
 
 === Mögliche Verlinkung
@@ -36,7 +35,7 @@ Erwartet:: Daten vom Typ *Word*, z.B. von Abbreviator, Wordsearcher, Decomposer,
 Erzeugt:: Daten vom Typ *String*, z.B. für Textwriter
 
 === Parameter
-Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung). 
+Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung).
 Alle anderen Parameter müssen zwingend angegeben werden.
 <b>in</b>:: siehe allgemeine Beschreibung des Attendee
 <b>out</b>:: siehe allgemeine Beschreibung des Attendee
@@ -45,18 +44,18 @@ Alle anderen Parameter müssen zwingend angegeben werden.
                          Der Parameter wird als regulärer Ausdruck ausgewertet.
 <b><i>sort</i></b>:: (Standard: 'normal')
                      Der Parameter +sort+ beeinflußt Verarbeitung und Ausgabeformat des Vector_filters.
-                     normal:: Jedes gefilterte Wort wird einmalig (keine Doppelnennungen!) in 
+                     normal:: Jedes gefilterte Wort wird einmalig (keine Doppelnennungen!) in
                               alphabetischer Reihenfolge in der Form "wort" ausgegeben.
                      term_abs:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe
                                 der absoluten Häufigkeit im Dokument in der Form "12 wort" ausgegeben.
-                     term_rel:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe 
+                     term_rel:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe
                                 der relativen Häufigkeit im Dokument in der Form "0.1234 wort" ausgegeben.
-                     sto_abs:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe 
+                     sto_abs:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe
                                der absoluten Häufigkeit im Dokument in der Form "wort {12}" ausgegeben.
-                     sto_rel:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe 
+                     sto_rel:: Jedes gefilterte Wort wird einmalig in absteigender Häufigkeit mit Angabe
                                der relativen Häufigkeit im Dokument in der Form "wort {0.1234}" ausgegeben.
-<b><i>skip</i></b>:: (Standard: TA_PUNCTUATION und TA_OTHER) Hiermit wird angegeben, welche Objekte nicht 
-                     verarbeitet werden sollen. Die +skip+-Angabe bezieht sich auf das Attribut +attr+ von 
+<b><i>skip</i></b>:: (Standard: TA_PUNCTUATION und TA_OTHER) Hiermit wird angegeben, welche Objekte nicht
+                     verarbeitet werden sollen. Die +skip+-Angabe bezieht sich auf das Attribut +attr+ von
                      Token oder Word-Objekten.
 
 === Beispiele
@@ -74,10 +73,9 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
+class Lingo::Vector_filter < Lingo::Attendee
 
-class Vector_filter < Attendee
-
-protected
+  protected
 
   def init
     @lexis = Regexp.new(get_key('lexicals', '[sy]').downcase)
@@ -86,7 +84,6 @@ protected
     @vectors = Array.new
     @word_count = 0
   end
-
 
   def control(cmd, par)
     case cmd
@@ -98,9 +95,8 @@ protected
     end
   end
 
-
   def process(obj)
-    if obj.is_a?(Word)
+    if obj.is_a?(Lingo::Word)
       @word_count += 1 if @skip.index(obj.attr).nil?
       unless obj.lexicals.nil?
         lexis = obj.get_class(@lexis) #lexicals.collect { |lex| (lex.attr =~ @lexis) ? lex : nil }.compact # get_class(@lexis)
@@ -110,14 +106,13 @@ protected
     end
   end
 
-
-private
+  private
 
   def sendVector
     return if @vectors.size==0
 
     add('Objekte gefiltert', @vectors.size)
-      
+
     #    Array der Vector-Wörter zählen und nach Häufigkeit sortieren
     if @sort=='normal'
       @vectors = @vectors.compact.sort.uniq
@@ -143,7 +138,7 @@ private
       else sprintf "%s", vec
       end
     }.each { |str| forward(str) }
-    
+
   end
-  
+
 end

@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,16 +21,15 @@
 #
 #  Lex Lingo rules from here on
 
-
 =begin rdoc
 == Multiworder
-Mit der bisher beschriebenen Vorgehensweise werden die durch den Tokenizer erkannten 
-Token aufgelöst und in Words verwandelt und über den Abbreviator und Decomposer auch 
-Spezialfälle behandelt, die einzelne Wörter betreffen. 
+Mit der bisher beschriebenen Vorgehensweise werden die durch den Tokenizer erkannten
+Token aufgelöst und in Words verwandelt und über den Abbreviator und Decomposer auch
+Spezialfälle behandelt, die einzelne Wörter betreffen.
 Um jedoch auch Namen wie z.B. John F. Kennedy als Sinneinheit erkennen zu können, muss
 eine Analyse über mehrere Objekte erfolgen. Dies ist die Hauptaufgabe des Multiworders.
-Der Multiworder analysiert die Teile des Datenstroms, die z.B. durch Satzzeichen oder 
-weiteren Einzelzeichen (z.B. '(') begrenzt sind. Erkannte Mehrwortgruppen werden als 
+Der Multiworder analysiert die Teile des Datenstroms, die z.B. durch Satzzeichen oder
+weiteren Einzelzeichen (z.B. '(') begrenzt sind. Erkannte Mehrwortgruppen werden als
 zusätzliches Objekt in den Datenstrom mit eingefügt.
 
 === Mögliche Verlinkung
@@ -38,14 +37,14 @@ Erwartet:: Daten vom Typ *Word* z.B. von Wordsearcher, Decomposer, Ocr_variator,
 Erzeugt:: Daten vom Typ *Word* (mit Attribut WA_MULTIWORD). Je erkannter Mehrwortgruppe wird ein zusätzliches Word-Objekt in den Datenstrom eingefügt. Z.B. für Ocr_variator, Sequencer, Noneword_filter, Vector_filter
 
 === Parameter
-Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung). 
+Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung).
 Alle anderen Parameter müssen zwingend angegeben werden.
 <b>in</b>:: siehe allgemeine Beschreibung des Attendee
 <b>out</b>:: siehe allgemeine Beschreibung des Attendee
 <b>source</b>:: siehe allgemeine Beschreibung des Dictionary
 <b><i>mode</i></b>:: (Standard: all) siehe allgemeine Beschreibung des Dictionary
-<b><i>stopper</i></b>:: (Standard: TA_PUNCTUATION, TA_OTHER) Gibt die Begrenzungen an, zwischen 
-                        denen der Multiworder suchen soll, i.d.R. Satzzeichen und Sonderzeichen, 
+<b><i>stopper</i></b>:: (Standard: TA_PUNCTUATION, TA_OTHER) Gibt die Begrenzungen an, zwischen
+                        denen der Multiworder suchen soll, i.d.R. Satzzeichen und Sonderzeichen,
                         weil sie kaum in einer Mehrwortgruppen vorkommen.
 
 === Beispiele
@@ -73,19 +72,18 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
+class Lingo::Multiworder < Lingo::BufferedAttendee
 
-class Multiworder < BufferedAttendee
-
-protected
+  protected
 
   def init
     #  Parameter verwerten
     @stopper = get_array('stopper', TA_PUNCTUATION+','+TA_OTHER).collect {|s| s.upcase }
-    
+
     #  Wörterbuch bereitstellen
     mul_src = get_array('source')
     mul_mod = get_key('mode', 'all')
-    @mul_dic = Dictionary.new({'source'=>mul_src, 'mode'=>mul_mod}, @@library_config)
+    @mul_dic = Lingo::Dictionary.new({'source'=>mul_src, 'mode'=>mul_mod}, @@library_config)
 
     #  Lexikalisierungs-Wörterbuch aus angegebenen Quellen ermitteln
     lex_src = nil
@@ -97,34 +95,31 @@ protected
         forward(STR_CMD_WARN, "Die Mehrwortwörterbücher #{mul_src.join(',')} sind mit unterschiedlichen Wörterbüchern lexikalisiert worden")
       end
     }
-    @lex_dic = Dictionary.new({'source'=>lex_src.split(STRING_SEPERATOR_PATTERN), 'mode'=>'first'}, @@library_config)
-    @lex_gra = Grammar.new({'source'=>lex_src.split(STRING_SEPERATOR_PATTERN), 'mode'=>'first'}, @@library_config)
-    
+    @lex_dic = Lingo::Dictionary.new({'source'=>lex_src.split(STRING_SEPERATOR_PATTERN), 'mode'=>'first'}, @@library_config)
+    @lex_gra = Lingo::Grammar.new({'source'=>lex_src.split(STRING_SEPERATOR_PATTERN), 'mode'=>'first'}, @@library_config)
+
     @number_of_expected_tokens_in_buffer = 3
     @eof_handling = false
   end
 
-
   def control(cmd, par)
     @mul_dic.report.each_pair { |key, value| set(key, value) } if cmd == STR_CMD_STATUS
-    
+
     #  Jedes Control-Object ist auch Auslöser der Verarbeitung
     if cmd == STR_CMD_RECORD || cmd == STR_CMD_EOF
       @eof_handling = true
       while number_of_valid_tokens_in_buffer > 1
         process_buffer
-      end 
+      end
       forward_number_of_token( @buffer.size, false )
       @eof_handling = false
     end
   end
 
-
   def process_buffer?
     number_of_valid_tokens_in_buffer >= @number_of_expected_tokens_in_buffer
   end
 
-  
   def process_buffer
     unless @buffer[0].form == CHAR_PUNCT
       #  Prüfe 3er Schlüssel
@@ -153,18 +148,18 @@ protected
                   throw :forward_one
                 end
               end
-              
+
               #  Keinen Match gefunden
-              forward_number_of_token( 1 )    
+              forward_number_of_token( 1 )
             end
-            
+
             @number_of_expected_tokens_in_buffer = 3
             process_buffer if process_buffer?
             return
           end
         end
       end
-      
+
       #  Prüfe 2er Schlüssel
       result = check_multiword_key( 2 )
       unless result.empty?
@@ -172,17 +167,15 @@ protected
         forward_number_of_token( 1 )
       end
     end
-      
+
     #  Buffer weiterschaufeln
     forward_number_of_token( 1, false )
     @number_of_expected_tokens_in_buffer = 3
-  end        
+  end
 
-
-private
+  private
 
   def create_and_forward_multiword( len, lexicals )
-
     #  Form aus Buffer auslesen und Teile markieren
     pos = 0
     form_parts = []
@@ -198,16 +191,15 @@ private
     end while pos < len
 
     form = form_parts.join( ' ' )
-    
+
     #  Multiword erstellen
-    word = Word.new( form, WA_MULTIWORD )
-    word << lexicals.collect { |lex| (lex.is_a?(Lexical)) ? lex : nil }.compact  # FIXME 1.60 - Ausstieg bei "*5" im Synonymer
+    word = Lingo::Word.new(form, WA_MULTIWORD)
+    word << lexicals.collect { |lex| (lex.is_a?(Lingo::Lexical)) ? lex : nil }.compact  # FIXME 1.60 - Ausstieg bei "*5" im Synonymer
 
     #  Forword Multiword
     forward( word )
   end
 
-  
   #  Leitet 'len' Token weiter
   def forward_number_of_token( len, count_punc = true )
     begin
@@ -219,11 +211,10 @@ private
     end while len > 0
   end
 
-  
   #  Ermittelt die maximale Ergebnislänge
   def sort_result_len( result )
     result.collect do |res|
-      if res.is_a?( Lexical )
+      if res.is_a?(Lingo::Lexical)
         res.form.split( ' ' ).size
       else
         res =~ /^\*(\d+)/
@@ -231,15 +222,14 @@ private
       end
     end.sort
   end
-  
-  
+
   #  Prüft einen definiert langen Schlüssel ab Position 0 im Buffer
   def check_multiword_key( len )
     return [] if number_of_valid_tokens_in_buffer < len
-    
+
     #  Wortformen aus der Wortliste auslesen
     sequence = @buffer.collect do |obj|
-      if obj.kind_of?(StringA)
+      if obj.kind_of?(Lingo::StringA)
         next nil if obj.form == CHAR_PUNCT
         word = @lex_dic.find_word( obj.form )
         word = @lex_gra.find_compositum( obj.form ) if word.attr == WA_UNKNOWN
@@ -253,10 +243,9 @@ private
     @mul_dic.select( key )
   end
 
-
   #  Liefert die Anzahl gültiger Token zurück
   def number_of_valid_tokens_in_buffer
     @buffer.collect { |token| (token.form == CHAR_PUNCT) ? nil : 1 }.compact.size
   end
-  
+
 end

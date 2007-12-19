@@ -23,20 +23,19 @@
 #
 #  Lex Lingo rules from here on
 
-
 #require 'English'
-require 'lib/config'
-require 'lib/meeting'
 
+$: << File.join(File.dirname(__FILE__), '..', 'lib')
+
+require 'lingo'
+require 'lingo/config'
+require 'lingo/meeting'
 
 class Lingo
-
-private
 
   @@config = nil
 
   def initialize(prog=$0, cmdline=$*)
-
     $stdin.sync = true
     $stdout.sync = true
 
@@ -47,14 +46,10 @@ private
     @@meeting = Meeting.new
   end
 
-
-public
-
   def Lingo.config
     Lingo.new( 'lingo.rb', [] ) if @@config.nil?
     @@config
   end
-
 
   def Lingo.meeting
     @@meeting
@@ -77,10 +72,9 @@ public
 
     @@meeting.start(protocol)
   end
+
 end
 
 if $0 == __FILE__
-
   Lingo.new.talk
-
 end

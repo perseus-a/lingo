@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,26 +21,23 @@
 #
 #  Lex Lingo rules from here on
 
-
 require 'pathname'
 
 #
 #    Util stellt Hilfsroutinen bereit, die der Denke des Autors besser entsprechen.
 #
 
-
-
-
 #    Erweiterung der Klasse String.
 class String
+
   alias old_split split
   alias old_downcase downcase
-  
+
   #    _str_.split( _anInteger_ ) -> _anArray_
   #
   #    Die Methode split wird um eine Aufruf-Variante erweitert, z.B.
   #
-  #    <tt>"Wortklasse".split(4) -> ["Wort", "klasse"]</tt> 
+  #    <tt>"Wortklasse".split(4) -> ["Wort", "klasse"]</tt>
   def split(*par)
     if par.size == 1 && par[0].kind_of?(Fixnum)
       [slice(0...par[0]), slice(par[0]..self.size-1)]
@@ -48,13 +45,11 @@ class String
       old_split(*par)
     end
   end
-  
-  
+
   def downcase # utf-8 downcase
     self.old_downcase.tr('ÄÖÜÁÂÀÉÊÈÍÎÌÓÔÒÚÛÙÝ', 'äöüáâàéêèíîìóôòúûùý')
   end
-  
-  
+
   HEX_CHARS = '0123456789abcdef'.freeze
 
   def to_x
@@ -67,8 +62,7 @@ class String
     }
     hex
   end
-  
-  
+
   def from_x
     str, q, first = '', 0, false
     each_byte { |byte|
@@ -88,14 +82,12 @@ class String
     str
   end
 
-
   #  als patch für dictionary.select.sort.uniqual
   def attr
     ''
   end
 
 end
-
 
 #    Erweiterung der Klasse File
 class File
@@ -109,7 +101,6 @@ class File
     fileName =~ /^(.*\.)[^\.]+$/
     $1+ext
   end
-  
 
   def File.obj_type(obj)
     db_re = Regexp.new($CFG['db-file-index-pattern'])
@@ -119,8 +110,8 @@ class File
         found_index = 0
         File.open(obj) { |file|
           (1..50).each { |i|
-            found_index += 1 if file.gets =~ db_re 
-          } 
+            found_index += 1 if file.gets =~ db_re
+          }
         }
         obj_type = 'db' if found_index > 3
       end
@@ -129,9 +120,8 @@ class File
     end
     obj_type
   end
-  
-end
 
+end
 
 class Array
 
@@ -148,7 +138,7 @@ class Array
     end
     self
   end
-  
+
   def uniqual
     result = self.dup
     if result.size > 1
@@ -163,11 +153,11 @@ class Array
     end
     result
   end
-  
+
 end
 
-
 class Pathname
+
   def create_path
     here = Pathname.new( '.' )
     self.split[0].each_filename do |path|
@@ -177,4 +167,5 @@ class Pathname
       end
     end
   end
+
 end

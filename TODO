@@ -13,7 +13,6 @@
 
 == Specific features
 
-* Reorganize file and module structure, pt. 2: Lingo namespace.
 * Refactor Rakefile (lib/tasks/).
 * Update some older documentation (particularly, the README).
 * Package lingo as gem, allowing it to be installed system-wide, with user

@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,15 +21,18 @@
 #
 #  Lex Lingo rules from here on
 
-
+require 'lingo/const'
 
 #
-#    Die Klasse StringA ist die Basisklasse für weitere Klassen, die im Rahmen der 
+#    Die Klasse StringA ist die Basisklasse für weitere Klassen, die im Rahmen der
 #    Objektstruktur eines Wortes benötigt werden. Die Klasse stellt eine Zeichenkette bereit,
 #    die mit einem Attribut versehen werden kann.
 #
-class StringA
+class Lingo::StringA
+
   include Comparable
+  include Lingo::Const
+
   attr_accessor :form, :attr
 
   def initialize(form, attr='-')
@@ -38,7 +41,6 @@ class StringA
     self
   end
 
-
   def <=>(other)
     return 1 if other.nil?
     if @form==other.form
@@ -46,12 +48,11 @@ class StringA
     else
       @form<=>other.form
     end
-  end  
-
+  end
 
   def to_s
     @form + '/' + @attr
-  end  
+  end
 
   def inspect
     to_s
@@ -67,8 +68,12 @@ end
 #    Steht z.B. in ruby.cfg eine Regel zur Erkennung einer Zahl, die mit NUM bezeichnet wird,
 #    so wird dies dem Token angeheftet, z.B. Token.new('100', 'NUM') -> #100/NUM#
 #
-class Token < StringA
-  def to_s;  ':' + super + ':';  end  
+class Lingo::Token < Lingo::StringA
+
+  def to_s
+    ':' + super + ':'
+  end
+
 end
 
 #
@@ -78,12 +83,12 @@ end
 #    Wird z.B. aus dem Wörterbuch eine Grundform gelesen, so wird dies in Form eines
 #    Lexical-Objektes zurückgegeben, z.B. Lexical.new('Rennen', 'S') -> (rennen/s)
 #
-class Lexical < StringA
-  
+class Lingo::Lexical < Lingo::StringA
+
   def <=>(other)
-#v TODO: v1.5.1
-    return 1 unless other.is_a?(Lexical)
-#v
+    #v TODO: v1.5.1
+    return 1 unless other.is_a?(Lingo::Lexical)
+    #v
     if self.attr==other.attr
       #    gleiche attribute
       self.form<=>other.form
@@ -94,7 +99,7 @@ class Lexical < StringA
       else  #    vergleich der attribute
         ss = LA_SORTORDER.index(self.attr) || -1 # ' -weavsk'
         os = LA_SORTORDER.index(other.attr) || -1
-        case    
+        case
         when ss==-1 && os==-1  #    beides unpriviligierte attribute (und nicht gleich)
           self.attr<=>other.attr
         when ss==-1 && os>-1  then  1
@@ -106,42 +111,46 @@ class Lexical < StringA
     end
   end
 
-#v TODO: v1.5.1
+  #v TODO: v1.5.1
   def to_a
     [@form, @attr]
-  end  
-  
-  def to_str;  @form + '#' + @attr;  end  
-#v
-  def to_s;  '(' + super + ')';  end  
+  end
+
+  def to_str
+    @form + '#' + @attr
+  end
+  #v
+
+  def to_s
+    '(' + super + ')'
+  end
+
 end
 
-
 #
-#    Die Klasse Word bündelt spezifische Eigenschaften eines Wortes mit den 
+#    Die Klasse Word bündelt spezifische Eigenschaften eines Wortes mit den
 #    dazu notwendigen Methoden.
 #
-class Word < StringA
+class Lingo::Word < Lingo::StringA
 
-  #    Exakte Representation der originären Zeichenkette, so wie sie im Satz 
+  #    Exakte Representation der originären Zeichenkette, so wie sie im Satz
   #    gefunden wurde, z.B. <tt>form = "RubyLing"</tt>
-  
+
   #    Ergebnis der Wörterbuch-Suche. Sie stellt die Grundform des Wortes dar.
-  #    Dabei kann es mehrere mögliche Grundformen geben, z.B. kann +abgeschoben+ 
-  #    als Grundform das _Adjektiv_ +abgeschoben+ sein, oder aber das _Verb_ 
-  #    +abschieben+. 
+  #    Dabei kann es mehrere mögliche Grundformen geben, z.B. kann +abgeschoben+
+  #    als Grundform das _Adjektiv_ +abgeschoben+ sein, oder aber das _Verb_
+  #    +abschieben+.
   #
   #    <tt>lemma = [['abgeschoben', '#a'], ['abschieben', '#v']]</tt>.
   #
   #    <b>Achtung: Lemma wird nicht durch die Word-Klasse bestückt, sondern extern
   #    durch die Klasse Dictionary</b>
-
   def initialize(form, attr=WA_UNSET)
     super
     @lexicals = Array.new
     self
   end
-  
+
   def lexicals
     @lexicals
   end
@@ -163,8 +172,7 @@ class Word < StringA
     @form.size
   end
 
-
-  #    Gibt genau die Grundform der Wortklasse zurück, die der RegExp des Übergabe-Parameters 
+  #    Gibt genau die Grundform der Wortklasse zurück, die der RegExp des Übergabe-Parameters
   #    entspricht, z.B. <tt>word.get_wc(/a/) = ['abgeschoben', '#a']</tt>
   def get_class(wc_re)
     if @lexicals.size>0
@@ -180,7 +188,6 @@ class Word < StringA
     end
   end
 
-
   def norm
     if @attr == WA_IDENTIFIED
       lexicals[0].form
@@ -188,7 +195,6 @@ class Word < StringA
       @form
     end
   end
-
 
   def compo_form
     if @attr==WA_KOMPOSITUM
@@ -198,18 +204,16 @@ class Word < StringA
     end
   end
 
-
   def <<(other)
     case other
-      when Lexical  then @lexicals << other
-      when Array    then @lexicals += other
+      when Lingo::Lexical: @lexicals << other
+      when Array:          @lexicals += other
     end
     self
   end
 
-
   def <=>(other)
-    return 1 if other.nil? 
+    return 1 if other.nil?
     if @form==other.form
       if @attr==other.attr
         @lexicals<=>other.lexicals
@@ -219,8 +223,7 @@ class Word < StringA
     else
       @form<=>other.form
     end
-  end  
-
+  end
 
   def to_s
     s = '<' + @form
@@ -231,22 +234,19 @@ class Word < StringA
 
 end
 
+class Lingo::AgendaItem
 
-
-class AgendaItem
   include Comparable
-  attr_reader :cmd, :param
 
-private
+  attr_reader :cmd, :param
 
   def initialize(cmd, param='')
     @cmd = cmd || ''
     @param = param || ''
   end
 
-
   def <=>(other)
-    return 1 unless other.is_a?(AgendaItem)
+    return 1 unless other.is_a?(Lingo::AgendaItem)
     if self.cmd==other.cmd
       self.param<=>other.param
     else
@@ -254,13 +254,8 @@ private
     end
   end
 
-
-public
-
   def inspect
     "*#{cmd.upcase}('#{param}')"
   end
 
 end
-
-

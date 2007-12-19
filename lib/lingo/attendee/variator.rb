@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,11 +21,10 @@
 #
 #  Lex Lingo rules from here on
 
-
 =begin rdoc
 == Variator
-Der Variator ermöglicht bei nicht erkannten Wörtern den listenbasierten 
-Austausch einzelner Wortteile einchließlich erneuter Wörterbuchsuche zur 
+Der Variator ermöglicht bei nicht erkannten Wörtern den listenbasierten
+Austausch einzelner Wortteile einchließlich erneuter Wörterbuchsuche zur
 Verbesserung der Worterkennungsquote.
 
 Ursprünglich wurde der Variator entwickelt, um die mangelnde Qualität bei der
@@ -37,7 +36,7 @@ Erwartet:: Daten vom Typ *Word* (andere werden einfach durchgereicht) z.B. von W
 Erzeugt:: Daten vom Typ *Word* zur Weiterleitung z.B. an Synonymer, Decomposer, Multiworder, Sequencer, Noneword_filter oder Vector_filter
 
 === Parameter
-Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung). 
+Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung).
 Alle anderen Parameter müssen zwingend angegeben werden.
 <b>in</b>:: siehe allgemeine Beschreibung des Attendee
 <b>out</b>:: siehe allgemeine Beschreibung des Attendee
@@ -67,17 +66,16 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
+class Lingo::Variator < Lingo::Attendee
 
-class Variator < Attendee
-
-protected
+  protected
 
   def init
     #  Parameter verarbeiten
     @marker  = get_key('marker', '*')
     @max_var = get_key('max-var', '10000').to_i
     filter = get_array('check', WA_UNKNOWN)
-    
+
     src = get_array('source')
     mod = get_key('mode', 'all')
 
@@ -88,18 +86,17 @@ protected
     #  Initialisierungen
     @check = Hash.new(false)
     filter.each { |s| @check[s.upcase] = true }
-  
+
     #  Wörterbuchzugriff
     @dic = Dictionary.new({'source'=>src, 'mode'=>mod}, @@library_config)
     @gra = Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
-    
+
     #  Optimierungen
     if @max_var == 0
       forward( STR_CMD_WARN, 'Ocr-variator: max-var ist 0, setze es auf 10.000' )
       @max_var = 10000
     end
   end
-
 
   def control(cmd, par)
     #  Status wird abgefragt
@@ -109,7 +106,6 @@ protected
       @gra.report.each_pair { | k, v | set( k, v ) }
     end
   end
-
 
   def process(obj)
     #  Zu prüfende Wörter filtern
@@ -138,12 +134,11 @@ protected
         return
       end
     end
-    
+
     forward(obj)
   end
 
-
-private
+  private
 
   #  Variiere die Bestandteile eines Arrays gemäß den Austauschvorgaben.
   #
@@ -152,7 +147,7 @@ private
     #  neue Varianten sammeln
     add_variations = []
     from_re = Regexp.new(from)
-    
+
     #  alle Wörter in der variation_list permutieren
     variation_list.each do |wordform|
 
@@ -168,12 +163,12 @@ private
         variation = wordpart[0]
         #  i[x] = Wert des x.ten Bit von Integer i
         (1..n).each { |j| variation += change[i[j-1]] + wordpart[j]  }
-        
+
         add_variations << variation.strip
       end
     end
-    
+
     variation_list + add_variations
   end
-  
+
 end

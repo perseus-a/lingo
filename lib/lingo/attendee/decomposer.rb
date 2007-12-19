@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,13 +21,12 @@
 #
 #  Lex Lingo rules from here on
 
-
 =begin rdoc
 == Decomposer
-Komposita, also zusammengesetzte Wörter, sind eine Spezialität der deutschen Sprache 
+Komposita, also zusammengesetzte Wörter, sind eine Spezialität der deutschen Sprache
 (z.B. Indexierungssystem oder Kompositumerkennung).
-Könnte man alle Kombinationen in den Wörterbüchern hinterlegen, dann würde der 
-Wordsearcher die Erkennung bereits erledigt haben. Die hohe Anzahl der möglichen 
+Könnte man alle Kombinationen in den Wörterbüchern hinterlegen, dann würde der
+Wordsearcher die Erkennung bereits erledigt haben. Die hohe Anzahl der möglichen
 Kombinationen verbietet jedoch einen solchen Ansatz aufgrund des immensen Pflegeaufwands,
 eine algorithmische Lösung erscheint sinnvoller.
 Der Decomposer wertet alle vom Wordsearcher nicht erkannten Wörter aus und prüft sie
@@ -38,7 +37,7 @@ Erwartet:: Daten vom Typ *Word* (andere werden einfach durchgereicht) z.B. von W
 Erzeugt:: Daten vom Typ *Word* (erkannte Komposita werden entsprechend erweitert) z.B. für Synonymer, Ocr_variator, Multiworder, Sequencer, Noneword_filter, Vector_filter
 
 === Parameter
-Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung). 
+Kursiv dargestellte Parameter sind optional (ggf. mit Angabe der Voreinstellung).
 Alle anderen Parameter müssen zwingend angegeben werden.
 <b>in</b>:: siehe allgemeine Beschreibung des Attendee
 <b>out</b>:: siehe allgemeine Beschreibung des Attendee
@@ -68,28 +67,25 @@ ergibt die Ausgabe über den Debugger: <tt>lingo -c t1 test.txt</tt>
   out> *EOF('test.txt')
 =end
 
+class Lingo::Decomposer < Lingo::Attendee
 
-class Decomposer < Attendee
-
-protected
+  protected
 
   def init
     #  Wörterbuch bereitstellen
     src = get_array('source')
     mod = get_key('mode', 'all')
-    @grammar = Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
+    @grammar = Lingo::Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
   end
-
 
   def control(cmd, par)
     @grammar.report.each_pair { |key, value|
-      set(key, value) 
+      set(key, value)
     } if cmd == STR_CMD_STATUS
   end
 
-
   def process(obj)
-    if obj.is_a?(Word) && obj.attr == WA_UNKNOWN
+    if obj.is_a?(Lingo::Word) && obj.attr == WA_UNKNOWN
       obj = @grammar.find_compositum(obj.form)
     end
     forward(obj)
