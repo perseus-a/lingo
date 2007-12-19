@@ -23,3 +23,50 @@
 
 class Lingo
 end
+
+require 'lingo/config'
+require 'lingo/meeting'
+
+class Lingo
+
+  @@config = nil
+
+  def initialize(prog=$0, cmdline=$*)
+    $stdin.sync = true
+    $stdout.sync = true
+
+    #  Konfiguration bereitstellen
+    @@config = LingoConfig.new(prog, cmdline)
+
+    #  Meeting einberufen
+    @@meeting = Meeting.new
+  end
+
+  def Lingo.config
+    Lingo.new( 'lingo.rb', [] ) if @@config.nil?
+    @@config
+  end
+
+  def Lingo.meeting
+    @@meeting
+  end
+
+  def Lingo.error(txt)
+    puts
+    puts txt
+    puts
+    exit
+  end
+
+  def talk
+    attendees = @@config['meeting/attendees']
+    @@meeting.invite(attendees)
+
+    protocol = 0
+    protocol += 1 if (@@config['cmdline/status'] || false)
+    protocol += 2 if (@@config['cmdline/perfmon'] || false)
+
+    @@meeting.start(protocol)
+  end
+
+end

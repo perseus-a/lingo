@@ -157,8 +157,6 @@ class Lingo::LingoConfig
   end
 
   def load_yaml_file(file_name, file_ext)
-    tree = nil
-
     if File.basename(file_name) =~ /\./
       yaml_file = file_name.sub(/\.([^\.]+)$/, file_ext)
     else
@@ -166,8 +164,7 @@ class Lingo::LingoConfig
     end
     usage("Datei #{yaml_file} nicht vorhanden") unless File.exist?(yaml_file)
 
-    File.open(yaml_file) { |file| tree = YAML.load(file) }
-    tree
+    YAML.load_file(yaml_file)
   end
 
   def patch_keys(cont)

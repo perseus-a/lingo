@@ -1,19 +1,19 @@
-#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung, 
+#  LINGO ist ein Indexierungssystem mit Grundformreduktion, Kompositumzerlegung,
 #  Mehrworterkennung und Relationierung.
 #
 #  Copyright (C) 2005  John Vorhauer
 #
-#  This program is free software; you can redistribute it and/or modify it under 
-#  the terms of the GNU General Public License as published by the Free Software 
+#  This program is free software; you can redistribute it and/or modify it under
+#  the terms of the GNU General Public License as published by the Free Software
 #  Foundation;  either version 2 of the License, or  (at your option)  any later
 #  version.
 #
 #  This program is distributed  in the hope  that it will be useful, but WITHOUT
-#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+#  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 #  FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 #
-#  You should have received a copy of the  GNU General Public License along with 
-#  this program; if not, write to the Free Software Foundation, Inc., 
+#  You should have received a copy of the  GNU General Public License along with
+#  this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 #
 #  For more information visit http://www.lex-lingo.de or contact me at
@@ -21,19 +21,20 @@
 #
 #  Lex Lingo rules from here on
 
-
 require 'test/unit'
-require 'lingo'
 
+require 'lingo'
 
 ################################################################################
 #
 #    Database Test-Suite
 class TestDatabase < Test::Unit::TestCase
 
+  include Lingo::Const
+
   def setup
-    Lingo.new('lingo.rb', [])
-    
+    Lingo.new(File.join(File.dirname(__FILE__), '..', 'bin', 'lingo'), [])
+
     @singleword = <<END_OF_TEXT
 Wort1
 Wort2
@@ -83,7 +84,7 @@ END_OF_TEXT
     compare( 'tst-sw1', @singleword, expect )
   end
 
-  
+
   def test_singleword_defwc
     expect = {
       'wort1'=>'#*',
@@ -98,7 +99,7 @@ END_OF_TEXT
     compare( 'tst-sw2', @singleword, expect )
   end
 
-  
+
   def test_singleword_uselex
     expect = {
       'wort1'=>'#s',
@@ -138,7 +139,7 @@ END_OF_TEXT
       'ganz großer und blöder mist'=>'#m',
       'ganz großer und blöder schwach sinn'=>'#m'
     }
-    dbm = DbmFile.new( 'tst-sw4' )
+    dbm = Lingo::DbmFile.new( 'tst-sw4' )
     dbm.open
     expect.each_pair { |key, val| assert_equal( [val], dbm[key] ) }
     dbm.close
@@ -156,7 +157,7 @@ END_OF_TEXT
     compare( 'tst-kv1', @keyvalue, expect )
   end
 
-  
+
   def test_keyvalue_separator
     expect = {
       'wort1'=>'projektion1#?|projektion4#?|projektion5#?',
@@ -168,7 +169,7 @@ END_OF_TEXT
     compare( 'tst-kv2', @keyvalue, expect )
   end
 
-  
+
   def test_keyvalue_defwc
     expect = {
       'wort1'=>'projektion1#s|projektion4#s|projektion5#s',
@@ -198,7 +199,7 @@ END_OF_TEXT
     compare( 'tst-wc1', txtfile, expect )
   end
 
-  
+
   def test_multivalue
     txtfile = %q{
       Hasen;Nasen;Vasen;Rasen
@@ -210,7 +211,7 @@ END_OF_TEXT
       '^0'=>'hasen|nasen|rasen|vasen',
       '^1'=>'edelmetall|gold|mehrwert',
       '^2'=>'gras|grüne fläche|rasen',
-      '^3'=>'rasen|rennen|wettrennen',    
+      '^3'=>'rasen|rennen|wettrennen',
       'hasen'=>'^0',
       'nasen'=>'^0',
       'rasen'=>'^0|^2|^3',
@@ -242,11 +243,11 @@ END_OF_TEXT
     compare( 'tst-mk1', txtfile, expect )
   end
 
-  
+
   def compare( id, input, output )
-    txtfile = Lingo.config['language/dictionary/databases/' + id + '/name']
+    txtfile = Lingo::TxtFile.filename(id)
     File.open( txtfile, 'w' ) { |file| file.puts input, ' ' * id[-1] }
-    dbm = DbmFile.new( id )
+    dbm = Lingo::DbmFile.new( id )
     dbm.open
     store = dbm.to_h
     dbm.close

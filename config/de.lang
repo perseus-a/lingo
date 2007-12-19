@@ -66,18 +66,18 @@ language:
       tst-sgw: { name: de/test_singleword.txt, txt-format: SingleWord } #  TEST: SingleWord-Format
       #
       #    ts_database (TxtFiles werden automatisch erzeugt!)
-      sys-lx1: { name: de/lingo-dic.txt, txt-format: WordClass }   #  TEST: wird automatisch erstellt
-      sys-lx2: { name: de/lingo-gpl.txt, txt-format: WordClass }   #  TEST: wird automatisch erstellt
-      tst-sw1: { name: test/de/singleword.txt, txt-format: SingleWord }   #  TEST: wird automatisch erstellt
-      tst-sw2: { name: test/de/singleword.txt, txt-format: SingleWord, def-wc: '*' }   #  TEST: wird automatisch erstellt
-      tst-sw3: { name: test/de/singleword.txt, txt-format: SingleWord, use-lex: 'sys-lx1,sys-lx2' }   #  TEST: wird automatisch erstellt
-      tst-sw4: { name: test/de/singleword.txt, txt-format: SingleWord, crypt }   #  TEST: wird automatisch erstellt
-      tst-kv1: { name: test/de/keyvalue.txt, txt-format: KeyValue }   #  TEST: wird automatisch erstellt
-      tst-kv2: { name: test/de/keyvalue.txt, txt-format: KeyValue, separator: '*' }   #  TEST: wird automatisch erstellt
-      tst-kv3: { name: test/de/keyvalue.txt, txt-format: KeyValue, separator: '*', def-wc: 's' }   #  TEST: wird automatisch erstellt
-      tst-wc1: { name: test/de/wordclass.txt, txt-format: WordClass, separator: '=' }   #  TEST: wird automatisch erstellt
-      tst-mv1: { name: test/de/multivalue.txt, txt-format: MultiValue, separator: ';'  }   #  TEST: wird automatisch erstellt
-      tst-mk1: { name: test/de/multikey.txt, txt-format: MultiKey }   #  TEST: wird automatisch erstellt
+      sys-lx1: { name: de/lingo-auto-dic.txt, txt-format: WordClass }   #  TEST: wird automatisch erstellt
+      sys-lx2: { name: de/lingo-auto-gpl.txt, txt-format: WordClass }   #  TEST: wird automatisch erstellt
+      tst-sw1: { name: de/test_auto_singleword.txt, txt-format: SingleWord }   #  TEST: wird automatisch erstellt
+      tst-sw2: { name: de/test_auto_singleword.txt, txt-format: SingleWord, def-wc: '*' }   #  TEST: wird automatisch erstellt
+      tst-sw3: { name: de/test_auto_singleword.txt, txt-format: SingleWord, use-lex: 'sys-lx1,sys-lx2' }   #  TEST: wird automatisch erstellt
+      tst-sw4: { name: de/test_auto_singleword.txt, txt-format: SingleWord, crypt }   #  TEST: wird automatisch erstellt
+      tst-kv1: { name: de/test_auto_keyvalue.txt, txt-format: KeyValue }   #  TEST: wird automatisch erstellt
+      tst-kv2: { name: de/test_auto_keyvalue.txt, txt-format: KeyValue, separator: '*' }   #  TEST: wird automatisch erstellt
+      tst-kv3: { name: de/test_auto_keyvalue.txt, txt-format: KeyValue, separator: '*', def-wc: 's' }   #  TEST: wird automatisch erstellt
+      tst-wc1: { name: de/test_auto_wordclass.txt, txt-format: WordClass, separator: '=' }   #  TEST: wird automatisch erstellt
+      tst-mv1: { name: de/test_auto_multivalue.txt, txt-format: MultiValue, separator: ';'  }   #  TEST: wird automatisch erstellt
+      tst-mk1: { name: de/test_auto_multikey.txt, txt-format: MultiKey }   #  TEST: wird automatisch erstellt
 
     compositum:
       min-word-size: "7"

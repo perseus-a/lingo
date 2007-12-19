@@ -91,8 +91,8 @@ task :testall => [ :test, :test_txt, :test_lir ]
 # => test
 #
 desc 'Testen des Lingo-Core'
-Rake::TestTask.new( :test ) do |tst|
-    tst.test_files = FileList.new( 'test/ts_*.rb', 'test/attendee/ts_*.rb' )
+Rake::TestTask.new(:test) do |tst|
+  tst.test_files = FileList.new('test/*_test.rb', 'test/attendee/*_test.rb')
 end
 
 

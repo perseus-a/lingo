@@ -48,7 +48,7 @@ class Lingo::Helper < Lingo::Attendee
     if @spooler
       @spool_from.each { |obj| forward(obj) } if cmd==STR_CMD_TALK
     else
-      @dump_to << AgendaItem.new(cmd, param)
+      @dump_to << Lingo::AgendaItem.new(cmd, param)
     end
   end
 

@@ -415,7 +415,7 @@ class Lingo::DbmFile
     Lingo::Txt2DbmConverter.new( id ).convert if read_mode && !Lingo::DbmFile.uptodate?( id )
 
     #  Verschlüsselung vorbereiten
-    @crypter = Lingo.config['language/dictionary/databases/' + id].has_key?( 'crypt' ) ? Crypter.new : nil
+    @crypter = Lingo.config['language/dictionary/databases/' + id].has_key?( 'crypt' ) ? Lingo::Crypter.new : nil
 
     #  Store-Ordner anlegen
     Pathname.new(Lingo::DbmFile.filename(id)).create_path

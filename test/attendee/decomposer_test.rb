@@ -1,4 +1,4 @@
-require 'test/attendee/globals'
+require 'test/attendee/test_helper'
 
 ################################################################################
 #

@@ -88,8 +88,8 @@ class Lingo::Variator < Lingo::Attendee
     filter.each { |s| @check[s.upcase] = true }
 
     #  Wörterbuchzugriff
-    @dic = Dictionary.new({'source'=>src, 'mode'=>mod}, @@library_config)
-    @gra = Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
+    @dic = Lingo::Dictionary.new({'source'=>src, 'mode'=>mod}, @@library_config)
+    @gra = Lingo::Grammar.new({'source'=>src, 'mode'=>mod}, @@library_config)
 
     #  Optimierungen
     if @max_var == 0
@@ -109,7 +109,7 @@ class Lingo::Variator < Lingo::Attendee
 
   def process(obj)
     #  Zu prüfende Wörter filtern
-    if obj.is_a?(Word) && @check[obj.attr]
+    if obj.is_a?(Lingo::Word) && @check[obj.attr]
       #  Statistik für Report
       inc('Anzahl gesuchter Wörter')
 

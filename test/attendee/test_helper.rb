@@ -1,4 +1,5 @@
 require 'test/unit'
+
 require 'lingo'
 
 ################################################################################
@@ -13,28 +14,28 @@ end
 #    Erzeugt ein AgendaItem-Objekt
 def ai( text )
   c, p = split( text )
-  AgendaItem.new( c, p )
+  Lingo::AgendaItem.new( c, p )
 end
 
 #    Erzeugt ein Token-Objekt
 def tk( text )
   f, a = split( text )
-  Token.new( f, a )
+  Lingo::Token.new( f, a )
 end
 
 #    Erzeugt ein Lexical-Objekt
 def lx( text )
   f, a = split( text )
-  Lexical.new( f, a )
+  Lingo::Lexical.new( f, a )
 end
 
 #    Erzeugt ein Word-Objekt
 def wd( text, *lexis )
   f, a = split( text )
-  w = Word.new( f, a )
+  w = Lingo::Word.new( f, a )
   lexis.each do |text|
     f, a = split( text )
-    w << Lexical.new( f, a )
+    w << Lingo::Lexical.new( f, a )
   end
   w
 end
@@ -57,7 +58,7 @@ class Test::Unit::TestCase
     @name = $1.downcase if self.class.to_s =~ /TestAttendee(.*)/
     @output = Array.new
 
-    Lingo.new('lingo.rb', [])
+    Lingo.new(File.join(File.dirname(__FILE__), '..', '..', 'bin', 'lingo'), [])
   end
 
 
@@ -67,13 +68,13 @@ class Test::Unit::TestCase
     std_cfg.update({'out'=>'output'}) unless @output.nil?
 
     @output.clear
-    Lingo::meeting.reset
+    Lingo.meeting.reset
     inv_list = []
     inv_list << {'helper'=>{'name'=>'Helper', 'out'=>'lines', 'spool_from'=>@input}} unless @input.nil?
     inv_list << {@name=>std_cfg.update( att_cfg )}
     inv_list << {'helper'=>{'name'=>'Helper', 'in'=>'output', 'dump_to'=>@output}} unless @output.nil?
-    Lingo::meeting.invite( inv_list )
-    Lingo::meeting.start( 0 )
+    Lingo.meeting.invite( inv_list )
+    Lingo.meeting.start( 0 )
 
     assert_equal(@expect, @output) if check
   end
