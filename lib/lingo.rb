@@ -64,9 +64,10 @@ class Lingo
     attendees = @@config['meeting/attendees']
     @@meeting.invite(attendees)
 
-    protocol = 0
-    protocol += 1 if @@config['cmdline/status']
-    protocol += 2 if @@config['cmdline/perfmon']
+    protocol = {
+      :status      => @@config['cmdline/status'],
+      :performance => @@config['cmdline/perfmon']
+    }
 
     @@meeting.start(protocol)
   end

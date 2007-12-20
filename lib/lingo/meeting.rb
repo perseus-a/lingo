@@ -110,33 +110,40 @@ class Lingo
       end
     end
 
-    # => protocol = 0   keep quiet, i.e. for testing
-    # => protocol = 1   report status
-    # => protocol = 2   report performance
-    # => protocol = 3   report status and performance
-    def start( protocol )
-      #  prepare meeting
-      @attendees.first.listen(AgendaItem.new(STR_CMD_REPORT_STATUS)) if (protocol & 1) != 0
-      @attendees.first.listen(AgendaItem.new(STR_CMD_REPORT_TIME))   if (protocol & 2) != 0
+    # +protocol+ is a hash determining what to report after meeting;
+    # the following values are currently recognized: <tt>:status</tt>,
+    # <tt>:performance</tt>.
+    def start(protocol = {})
+      first_attendee = @attendees.first
 
-      #  hold meeting
+      # prepare meeting
+      first_attendee.listen(AgendaItem.new(STR_CMD_REPORT_STATUS)) \
+        if protocol[:status]
+      first_attendee.listen(AgendaItem.new(STR_CMD_REPORT_TIME))   \
+        if protocol[:performance]
+
+      # hold meeting
       start_time = Time.new
-      @attendees.first.listen(AgendaItem.new(STR_CMD_TALK))
-      end_time = Time.new
+      first_attendee.listen(AgendaItem.new(STR_CMD_TALK))
+      end_time   = Time.new
 
-      #  end meeting, create protocol
-      if (protocol & 3) != 0
-        puts "Require protocol..."
-        puts '-'*61
-        @attendees.first.listen(AgendaItem.new(STR_CMD_STATUS))
+      # end meeting, create protocol
+      if protocol.any? { |_, value| value }
+        separator = '-' * 61
 
-        #  duration of meeting
-        duration, unit = (end_time-start_time), 'second'
-        duration, unit = (duration/60.0), 'minute' if duration > 60
-        duration, unit = (duration/60.0), 'hour'   if duration > 60
-        unit += 's' if duration > 1
+        puts 'Require protocol...'
+        puts separator
 
-        printf "%s\nThe duration of the meeting was %5.2f %s\n", '-'*61, duration, unit
+        first_attendee.listen(AgendaItem.new(STR_CMD_STATUS))
+
+        # duration of meeting
+        duration, unit = end_time - start_time, 'second'
+        duration, unit = duration / 60.0,       'minute' if duration > 60
+        duration, unit = duration / 60.0,       'hour'   if duration > 60
+        unit << 's' if duration != 1
+
+        puts separator
+        puts 'The duration of the meeting was %.2f %s' % [duration, unit]
       end
     end
 

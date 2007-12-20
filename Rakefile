@@ -74,7 +74,7 @@ Rake::RDocTask.new do |doc|
     doc.title = 'Lex Lingo - RDoc Dokumentation'
     doc.options = [ '--charset', 'UTF-8' ]
     doc.rdoc_dir = 'doc'
-    doc.rdoc_files.include( 'README', 'ChangeLog', 'TODO', 'lib/attendee/*.rb' )
+    doc.rdoc_files.include( 'README', 'ChangeLog', 'TODO', 'lib/**/*.rb' )
 end
 
 
