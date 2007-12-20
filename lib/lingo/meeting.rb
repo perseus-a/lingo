@@ -128,7 +128,7 @@ class Lingo
       end_time   = Time.new
 
       # end meeting, create protocol
-      if protocol.any? { |_, value| value }
+      if protocol.values.any?
         separator = '-' * 61
 
         puts 'Require protocol...'
