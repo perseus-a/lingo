@@ -74,7 +74,7 @@ class Test::Unit::TestCase
     inv_list << {@name=>std_cfg.update( att_cfg )}
     inv_list << {'helper'=>{'name'=>'Helper', 'in'=>'output', 'dump_to'=>@output}} unless @output.nil?
     Lingo.meeting.invite( inv_list )
-    Lingo.meeting.start( 0 )
+    Lingo.meeting.start
 
     assert_equal(@expect, @output) if check
   end
