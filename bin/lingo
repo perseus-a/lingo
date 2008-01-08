@@ -29,6 +29,4 @@ $: << File.join(File.dirname(__FILE__), '..', 'lib')
 
 require 'lingo'
 
-if $0 == __FILE__
-  Lingo.new.talk
-end
+Lingo.new.talk

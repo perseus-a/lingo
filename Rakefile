@@ -1,194 +1,124 @@
-require 'rake'
-require 'rake/clean'
-require 'rake/testtask'
-require 'rake/packagetask'
-require 'rake/rdoctask'
-
-PACKAGE_NAME = 'lingo'
+PACKAGE_NAME  = 'lingo'
 LINGO_VERSION = '1.6.6'
-PACKAGE_PATH = 'pkg/'+PACKAGE_NAME+'-'+LINGO_VERSION+'.zip'
+PACKAGE_PATH  = 'pkg/' + PACKAGE_NAME + '-' + LINGO_VERSION
+
+begin
+  require 'hen'
+
+  Hen.lay!(:verbose => false) {{
+    :rubyforge => {
+      :project => nil
+    },
+
+    :rdoc => {
+      :title => 'Lex Lingo - Application Documentation'
+    },
+
+    :test => {
+      :files => FileList['test/*_test.rb', 'test/attendee/*_test.rb']
+    },
+
+    :gem => {
+      :name              => PACKAGE_NAME,
+      :version           => LINGO_VERSION,
+      :append_svnversion => false,
+      :summary           => 'Lingo - Linguistic Lego',
+      :files             => FileList['lib/**/*.rb', 'bin/*'].to_a,
+      :extra_files       => FileList[
+        '[A-Z]*', 'example/**/*', 'dict/**/*', 'config/*', 'info/*', 'test/**/*'
+      ].to_a
+    }
+  }}
+rescue LoadError
+  warn "Please install the 'hen' gem for additional tasks."
+end
+
+require 'rake/clean'
 
 # => CLEAN-FILES
-# => Diese Dateien werden mit dem Aufruf von 'rake clean' gelöscht (temporäre Dateien, die nicht dauerhaft benötigt werden)
-CLEAN.include( 'txt/*.mul', 'txt/*.non', 'txt/*.seq', 'txt/*.syn', 'txt/*.ve?', 'txt/lir.csv', 'test/test.*', 'test/text.non'  )
-CLEAN.include( 'de/*.rev', 'en/*.rev', 'test/de/*.rev' )
-
+# Diese Dateien werden mit dem Aufruf von 'rake clean' gelöscht
+# (temporäre Dateien, die nicht dauerhaft benötigt werden)
+CLEAN.include('example/*.{mul,non,seq,syn,ve?,csv}')
+CLEAN.include('dict/*/{*.rev,test_auto_*}')
+CLEAN.include('test/{test.*,text.non}')
 
 # => CLOBBER-FILES
-# => Diese Dateien werden mit dem Aufruf von 'rake clobber' gelöscht (Dateien, die auch wieder neu generiert werden können)
-CLOBBER.include( 'de/store', 'en/store', 'test/de/store', 'doc' ,'pkg/*' )
-CLOBBER.exclude( PACKAGE_PATH )
-
-# => LINGO-FILES
-# => Diese Dateien benötigt Lingo um zu funktionieren
-LANG_DE = FileList.new( 'de.lang', 'de/lingo-*.txt', 'de/user-dic.txt', 'txt/artikel.txt' )
-LANG_EN = FileList.new( 'en.lang', 'en/lingo-*.txt', 'en/user-dic.txt', 'txt/artikel-en.txt' )
-
-LINGO_CORE = FileList.new( 'lingo.rb', 'lib/*.rb', 'lib/attendee/*.rb' )
-LINGO_CONF = FileList.new( 'lingo.cfg', 'lingo.opt', 'lingo-en.cfg' )
-LINGO_DOCU = FileList.new( 'doc/*' )
-LINGO_INFO = FileList.new( 'info/gpl-hdr.txt', 'info/*.png' )
-
-TEST_CORE = FileList.new( 'test.cfg', 'test/ts_*.rb', 'test/attendee/*.rb' )
-TEST_DATA = FileList.new( '??/test_*.txt', 'test/lir*.txt', 'test/mul.txt', 'test/ref/*', 'test/de/*' )
-
-RELEASE = FileList.new( 'README', 'ChangeLog', 'COPYING', 'Rakefile', 'TODO' )
-LIR_FILES = FileList.new( 'lir.cfg', 'txt/lir.txt' )
-
-
+# Diese Dateien werden mit dem Aufruf von 'rake clobber' gelöscht
+# (Dateien, die auch wieder neu generiert werden können)
+CLOBBER.include('dict/*/store', 'doc' ,'pkg/*')
+CLOBBER.exclude(PACKAGE_PATH + '.*')
 
 #desc 'Default: proceed to testing lab...'
 task :default => :test
 
-################################################################################
-#
-# => :deploy
-#
 desc 'Stelle die aktuelle Version auf Subversion bereit'
-task :deploy => [ :package, :test_remote ] do
-    system( 'svn status' ) || exit
+task :deploy => [:package, :test_remote] do
+  system('svn status') || exit
 end
 
-################################################################################
-#
-# => :package
-#
-task :package => [ :testall, :rdoc ]
-
-desc 'Packettierung von Lingo'
-Rake::PackageTask.new( PACKAGE_NAME, LINGO_VERSION ) do |pkg|
-    pkg.need_zip = true
-    pkg.package_files.include( LINGO_CORE, LINGO_CONF, LINGO_DOCU, LINGO_INFO )
-    pkg.package_files.include( LANG_DE, LANG_EN )
-    pkg.package_files.include( TEST_CORE, TEST_DATA )
-    pkg.package_files.include( RELEASE, LIR_FILES )
-end
-
-
-################################################################################
-#
-# => :rdoc
-#
-desc 'Erstellen der Dokumentation'
-Rake::RDocTask.new do |doc|
-    doc.title = 'Lex Lingo - RDoc Dokumentation'
-    doc.options = [ '--charset', 'UTF-8' ]
-    doc.rdoc_dir = 'doc'
-    doc.rdoc_files.include( 'README', 'ChangeLog', 'TODO', 'lib/**/*.rb' )
-end
-
-
-################################################################################
-#
-# => testall
-#
 desc 'Vollständiger Test der Lingo-Funktionalität'
-task :testall => [ :test, :test_txt, :test_lir ]
+task :test_all => [:test, :test_txt, :test_lir]
 
-
-################################################################################
-#
-# => test
-#
-desc 'Testen des Lingo-Core'
-Rake::TestTask.new(:test) do |tst|
-  tst.test_files = FileList.new('test/*_test.rb', 'test/attendee/*_test.rb')
-end
-
-
-################################################################################
-#
-# => test_txt
-#
 desc 'Vollständiges Testen der Lingo-Prozesse anhand einer Textdatei'
-task :test_txt => [] do
+task :test_txt do
+  # => Testlauf mit normaler Textdatei
+  system('ruby bin/lingo -c test example/artikel.txt') || exit
 
-    # => Testlauf mit normaler Textdatei
-    system( "ruby lingo.rb -c test txt/artikel.txt" ) || exit
+  # => Für jede vorhandene _ref-Datei sollen die Ergebnisse verglichen werden
+  Dir['test/ref/artikel.*'].inject(true) { |continue, ref|
+    org = ref.sub(/test\/ref/, 'example')
 
-    # => Für jede vorhandene _ref-Dateien sollen die Ergebnisse verglichen werden
-    continue = true
-    Dir[ 'test/ref/artikel.*' ].each do |ref|
-      org = ref.gsub(/test\/ref/, 'txt')
-      puts '#' * 60 + "  Teste #{org}"
-      system( "diff -b #{ref} #{org}" ) || (continue = false)
-    end
+    puts '#' * 60 + "  Teste #{org}"
 
-    exit unless continue
+    system("diff -b #{ref} #{org}")
+  } || exit
 end
 
-
-################################################################################
-#
-# => test_lir
-#
 desc 'Vollständiges Testen der Lingo-Prozesse anhand einer LIR-Datei'
-task :test_lir => [] do
+task :test_lir do
+  # => Testlauf mit LIR-Datei
+  system('ruby bin/lingo -c lir example/lir.txt') || exit
 
-    # => Testlauf mit LIR-Datei
-    system( "ruby lingo.rb -c lir txt/lir.txt" ) || exit
+  # => Für jede vorhandene _ref-Datei sollen die Ergebnisse verglichen werden
+  Dir['test/ref/lir.*'].inject(true) { |continue, ref|
+    org = ref.sub(/test\/ref/, 'example')
 
-    # => Für jede vorhandene _ref-Dateien sollen die Ergebnisse verglichen werden
-    continue = true
-    Dir[ 'test/ref/lir.*' ].each do |ref|
-      org = ref.gsub(/test\/ref/, 'txt')
-      puts '#' * 60 + "  Teste #{org}"
-      system( "diff -b #{ref} #{org}" ) || (continue = false)
-    end
+    puts '#' * 60 + "  Teste #{org}"
 
-    exit unless continue
+    continue = system("diff -b #{ref} #{org}")
+  } || exit
 end
 
-
-################################################################################
-#
-# => test_remote
-#
-desc 'Vollständiges Testen der fertig packettierten Lingo-Version'
-task :test_remote => [ :package ] do
-
-    chdir( PACKAGE_PATH.gsub( /\.zip/, '' ) ) do
-
-        # => Testlauf im Package-Verzeichnis
-        system( "rake testall" ) || exit
-
-    end
-
+desc 'Vollständiges Testen der fertig paketierten Lingo-Version'
+task :test_remote => :package do
+  chdir(PACKAGE_PATH) do
+    # => Testlauf im Package-Verzeichnis
+    system('rake test_all') || exit
+  end
 end
-
-
-
 
 =begin
-
-
 
 desc '...starting tests, stand-by...'
 task :test => :test_init
 
+TST_PATH = ???
+GPL_TEXT = File.read('info/gpl-hdr.txt')
+LEX_LINE = "#  Lex Lingo rules from here on"
 
 def lingo_gpl
-  message( "Aktualisiere GPL-Hinweis" )
+  message('Aktualisiere GPL-Hinweis')
 
-  #  GPL-Header aller Ruby-Dateien erneuern
-  FileUtils.chdir( TST_PATH ) do
-    Dir['**/*.rb'].each do |filename|
-      rubycode = File.open( filename ).readlines
-      lex_idx  = rubycode.rindex( LEX_TEXT )
-      code_start = (lex_idx ||= -1) + 1
-      rubycode = GPL_TEXT + rubycode[ code_start..-1 ]
-      File.open( filename, 'w') do |file|
-        file.write( rubycode.join )
-      end
+  # GPL-Header aller Ruby-Dateien erneuern
+  Dir[TST_PATH + '/**/*.rb'].each { |filename|
+    content = File.read(filename)
+
+    if content.sub!(/\A.*?^#{LEX_LINE}$\s*/m, GPL_TEXT)
+      File.open(filename, 'w') { |file|
+        file.puts content
+      }
     end
-  end
-
+  }
 end
-
-
-
-GPL_TEXT  = File.open( 'info/gpl-hdr.txt' ).readlines
-LEX_TEXT  = "#  Lex Lingo rules from here on" + $/
-
 
 =end
